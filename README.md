@@ -1,102 +1,43 @@
-import pygame
-import random
+# frogger
 
-# 초기화
-pygame.init()
+## 구현 목표
+### 본 프로젝트는 일본에서 개발된 고전 게임 '프로거'가 목적이며, 개구리가 목표지점에 도달하기 위한 기능을 구현한다. 개구리 다섯마리가 목표 지점에 도달하면 스테이지 레벨이 올라가고, 개구리의 목숨이 0이 되면 종료된다.
 
-# 화면 설정
-screen_width, screen_height = 800, 600
-grid_size = 50  # 격자 크기
-screen = pygame.display.set_mode((screen_width, screen_height))
-pygame.display.set_caption('길건너 친구들')
+# 구현 기능
 
-# 색상 설정
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-RED = (255, 0, 0)
-GREEN = (0, 255, 0)
-BLUE = (0, 0, 255)
+* pygame 기반 환경 구현
+* 키보드 입력으로 장애물 회피 및 목표 지점 도달
+  * 자동차(좌우이동)
+  * 용(상->하이동)
+  * 통나무(좌우이동, 통나무에 탈 수 있음)
+* 추가적 아이템 구현
+  * 목숨아이템(하트 모양): 목숨 추가
+  * 시간아이템(시계 모양): 일시적 차량 정지
+  * 포인트아이템(코인 모양): 포인트 증가
+* 목숨 개수에 따라 스테이지 레벨 상승 기능
+  *속도 증가
+  *레벨 증가
+  *3레벨부터 용 등장
+* 개구리가 죽는 기능
+   * 장애물에 충돌한 경우
+   * 물에 빠진 경우
+   * 시간이 다 지난 경우
 
-# 플레이어 설정
-player_size = grid_size
-player_pos = [screen_width // 2, screen_height - grid_size]
+## 실행 방법
+1. python3.12를 설치한다.
+2. pip3 library 설치
+   ```
+   pip install pygame
+   ```
+3. 재부팅 후 python3 frogger.py 실행
+```
+   python3 frogger.py
+```
+## 실행 예시   
+![example](https://github.com/people1123/oss_pa2_1/assets/64593407/5066d746-e75c-4276-8e91-e6822a110b45)
+https://github.com/people1123/oss_pa2_1/assets/64593407/5066d746-e75c-4276-8e91-e6822a110b45
 
-# 자동차 설정
-car_size = [grid_size, grid_size // 2]
-car_speed = 1
-
-# 자동차 리스트 생성 함수
-def create_cars(num_cars):
-    cars = []
-    occupied_positions = set()
-    for _ in range(num_cars):
-        while True:
-            car_x = random.randint(0, (screen_width // grid_size) - 1) * grid_size
-            car_y = random.randint(0, (screen_height // 2 // grid_size) - 1) * grid_size
-            if (car_x, car_y) not in occupied_positions:
-                occupied_positions.add((car_x, car_y))
-                cars.append({'pos': [car_x, car_y], 'speed': random.choice([-car_speed, car_speed])})
-                break
-    return cars
-
-cars = create_cars(10)
-
-# 시계 설정
-clock = pygame.time.Clock()
-
-def detect_collision(player_pos, car_pos):
-    px, py = player_pos
-    cx, cy = car_pos
-
-    if (px >= cx and px < cx + car_size[0]) or (cx >= px and cx < px + player_size):
-        if (py >= cy and py < cy + car_size[1]) or (cy >= py and cy < py + player_size):
-            return True
-    return False
-
-def draw_player():
-    pygame.draw.rect(screen, BLUE, (player_pos[0], player_pos[1], player_size, player_size))
-
-def draw_cars(cars):
-    for car in cars:
-        pygame.draw.rect(screen, RED, (car['pos'][0], car['pos'][1], car_size[0], car_size[1]))
-
-# 게임 루프
-game_over = False
-while not game_over:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            game_over = True
-
-    keys = pygame.key.get_pressed()
-
-    if keys[pygame.K_LEFT] and player_pos[0] > 0:
-        player_pos[0] -= grid_size
-    if keys[pygame.K_RIGHT] and player_pos[0] < screen_width - player_size:
-        player_pos[0] += grid_size
-    if keys[pygame.K_UP] and player_pos[1] > 0:
-        for car in cars:
-            car['pos'][1] += grid_size
-
-    screen.fill(WHITE)
-
-    # 자동차 움직임 및 화면 경계에서 위치 재설정
-    occupied_positions = set((car['pos'][0], car['pos'][1]) for car in cars)
-    for car in cars:
-        new_x = car['pos'][0] + car['speed'] * grid_size
-        if new_x >= screen_width or new_x < 0 or (new_x, car['pos'][1]) in occupied_positions:
-            car['speed'] = -car['speed']
-            new_x = car['pos'][0] + car['speed'] * grid_size
-        occupied_positions.discard((car['pos'][0], car['pos'][1]))
-        car['pos'][0] = new_x
-        occupied_positions.add((car['pos'][0], car['pos'][1]))
-
-        if detect_collision(player_pos, car['pos']):
-            game_over = True
-
-    draw_player()
-    draw_cars(cars)
-
-    pygame.display.update()
-    clock.tick(10)
-
-pygame.quit()
+## TODO LIST
+ * 포인트를 통한 랭킹 시스템
+ * 추가적인 아이템 구현(ex: 사용자가 원할 때 사용 가능한 아이템)
+ * 전체화면
