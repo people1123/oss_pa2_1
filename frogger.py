@@ -440,7 +440,7 @@ class Game():
         self.time = 30
 
 def levelUp(arrived_frog, cars, trees, frog, game, life, point, timer):
-    if len(arrived_frog) == 1:
+    if len(arrived_frog) == 5:
         createItems(life,0)
         createItems(point,0)
         createItems(timer,1)
