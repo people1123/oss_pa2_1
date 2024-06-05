@@ -25,6 +25,7 @@ car4_filename = './images/car4.png'
 car5_filename = './images/car5.png'
 tree_filename = './images/tree.png'
 lifeitem_filename = './images/life.png'
+pointitem_filename = './images/point.png'
 
 background = pygame.image.load(background_filename).convert()
 sprite_frog = pygame.image.load(frog_filename).convert_alpha()
@@ -36,6 +37,7 @@ sprite_car4 = pygame.image.load(car4_filename).convert_alpha()
 sprite_car5 = pygame.image.load(car5_filename).convert_alpha()
 sprite_tree = pygame.image.load(tree_filename).convert_alpha()
 sprite_lifeitem = pygame.image.load(lifeitem_filename).convert_alpha()
+sprite_pointitem = pygame.image.load(pointitem_filename).convert_alpha()
 
 class Object():
     def __init__(self, position, sprite):
@@ -49,8 +51,8 @@ class Object():
         return pygame.Rect(self.position[0], self.position[1], self.sprite.get_width(), self.sprite.get_height())
 
 class Item(Object):
-    def __init__(self,position,sprite_enemy):
-        self.sprite = sprite_enemy
+    def __init__(self,position,sprite_item):
+        self.sprite = sprite_item
         self.position = position
 
 class Frog(Object):
@@ -241,7 +243,7 @@ def drawList(list):
         i.draw()
 
 def createItems(items):
-    random = Random.randint(-100, 448)
+    random = Random.randint(20, 428)
     random2 = Random.randint(0,1000)
     random2 = random2%9
     position_col = 0
@@ -277,7 +279,13 @@ def eatLife(frog, item):
     if frogRec.colliderect(itemRec):
             frog.incLife()
             item.position=[-100,100]
-        
+
+def eatPoint(frog, point, game):
+    pointRec = point.rect()
+    frogRec = frog.rect()
+    if frogRec.colliderect(pointRec):
+            game.incPoints(10)
+            createItems(point)
 
 def createCars(list,cars, speed):
     for i, tick in enumerate(list):
@@ -396,6 +404,10 @@ while True:
     time = 30
     item= Item([0,0], sprite_lifeitem)
     createItems(item)
+
+    pointItem = Item([0,0], sprite_pointitem)
+    createItems(pointItem)
+
     
     while frog.life > 0:
         for event in pygame.event.get():
@@ -431,6 +443,7 @@ while True:
         elif frog.position[1] < 240 and frog.position[1] > 40:
             drownedFrog(frog, trees, game.speed, game)
         eatLife(frog, item)
+        eatPoint(frog, pointItem, game)
         levelUp(arrived_frog, cars, trees, frog, game)
 
         text_info1 = info_font.render(('Level: {0}               Points: {1}'.format(game.level,game.points)),1,(255,255,255))
@@ -445,6 +458,7 @@ while True:
         drawList(cars)
         drawList(trees)
         item.draw()
+        pointItem.draw()
         frog.animateFrog(key_pressed, key_up)
         frog.draw()
 
