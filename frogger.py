@@ -26,6 +26,7 @@ car5_filename = './images/car5.png'
 tree_filename = './images/tree.png'
 lifeitem_filename = './images/life.png'
 pointitem_filename = './images/point.png'
+timeritem_filename = './images/timer.png'
 
 background = pygame.image.load(background_filename).convert()
 sprite_frog = pygame.image.load(frog_filename).convert_alpha()
@@ -38,6 +39,7 @@ sprite_car5 = pygame.image.load(car5_filename).convert_alpha()
 sprite_tree = pygame.image.load(tree_filename).convert_alpha()
 sprite_lifeitem = pygame.image.load(lifeitem_filename).convert_alpha()
 sprite_pointitem = pygame.image.load(pointitem_filename).convert_alpha()
+sprite_timeritem = pygame.image.load(timeritem_filename).convert_alpha()
 
 class Object():
     def __init__(self, position, sprite):
@@ -208,8 +210,13 @@ class Car(Object):
         self.position = position
         self.way = way
         self.factor = factor
+        self.stoptime = 0
 
     def move(self,speed):
+        if self.stoptime >0:
+            self.stoptime -=1
+            return
+
         if self.way == "right":
             self.position[0] = self.position[0] + speed * self.factor
         elif self.way == "left":
@@ -242,10 +249,13 @@ def drawList(list):
     for i in list:
         i.draw()
 
-def createItems(items):
+def createItems(items, type):
     random = Random.randint(20, 428)
     random2 = Random.randint(0,1000)
-    random2 = random2%9
+    if type == 1:
+        random2 = random2%5
+    elif type == 0:
+        reandom2 = random2%9
     position_col = 0
     position_row = 0
     position_row = random
@@ -285,34 +295,47 @@ def eatPoint(frog, point, game):
     frogRec = frog.rect()
     if frogRec.colliderect(pointRec):
             game.incPoints(10)
-            createItems(point)
+            point.position = [-100,-100]
+            
 
-def createCars(list,cars, speed):
+def eatTimer(frog, timer, cars, game):
+    timerRec = timer.rect()
+    frogRec = frog.rect()
+    if frogRec.colliderect(timerRec):
+            game.stop_time = 30
+            for car in cars:
+                car.stoptime = 30
+                timer.position=[-100,100]
+
+def createCars(list,cars, game):
+    if game.stop_time >0:
+        game.stop_time = game.stop_time -1
+        return
     for i, tick in enumerate(list):
         list[i] = list[i] - 1
         if tick <= 0:
             if i == 0:
-                list[0] = (40*speed)
+                list[0] = (40*game.speed)
                 position_init = [-55,436]
                 car = Car(position_init,sprite_car1,"right",1)
                 cars.append(car)
             elif i == 1:
-                list[1] = (30*speed)
+                list[1] = (30*game.speed)
                 position_init = [506, 397]
                 car = Car(position_init,sprite_car2,"left",2)
                 cars.append(car)
             elif i == 2:
-                list[2] = (40*speed)
+                list[2] = (40*game.speed)
                 position_init = [-80, 357]
                 car = Car(position_init,sprite_car3,"right",2)
                 cars.append(car)
             elif i == 3:
-                list[3] = (30*speed)
+                list[3] = (30*game.speed)
                 position_init = [516, 318]
                 car = Car(position_init,sprite_car4,"left",1)
                 cars.append(car)
             elif i == 4:
-                list[4] = (50*speed)
+                list[4] = (50*game.speed)
                 position_init = [-56, 280]
                 car = Car(position_init,sprite_car5,"right",1)
                 cars.append(car)
@@ -354,6 +377,7 @@ class Game():
         self.speed = speed
         self.points = 0
         self.time = 30
+        self.stop_time = 0
         
         self.gameInit = 0
 
@@ -372,9 +396,11 @@ class Game():
     def resetTime(self):
         self.time = 30
 
-def levelUp(arrived_frog, cars, trees, frog, game):
+def levelUp(arrived_frog, cars, trees, frog, game, life, point, timer):
     if len(arrived_frog) == 3:
-        createItems(item)
+        createItems(life,0)
+        createItems(point,0)
+        createItems(timer,1)
         arrived_frog[:] = []
         frog.position=[207,475]
         game.incLevel()
@@ -402,11 +428,14 @@ while True:
     speed = 3
     game = Game(1, 3)
     time = 30
-    item= Item([0,0], sprite_lifeitem)
-    createItems(item)
+    lifeItem= Item([0,0], sprite_lifeitem)
+    createItems(lifeItem, 0)
 
     pointItem = Item([0,0], sprite_pointitem)
-    createItems(pointItem)
+    createItems(pointItem, 0)
+
+    timerItem = Item([0,0], sprite_timeritem)
+    createItems(timerItem, 1)
 
     
     while frog.life > 0:
@@ -432,7 +461,7 @@ while True:
         if frog.position[1] <40 :
             frogArrived(frog,arrived_frog, game)
 
-        createCars(ticks_cars, cars, game.speed)
+        createCars(ticks_cars, cars, game)
         createTrees(ticks_trees, trees, game.speed)
        
         moveList(cars,game.speed)
@@ -442,9 +471,10 @@ while True:
             crashedFrog(frog, cars,game)
         elif frog.position[1] < 240 and frog.position[1] > 40:
             drownedFrog(frog, trees, game.speed, game)
-        eatLife(frog, item)
+        eatLife(frog, lifeItem)
+        eatTimer(frog, timerItem, cars, game)
         eatPoint(frog, pointItem, game)
-        levelUp(arrived_frog, cars, trees, frog, game)
+        levelUp(arrived_frog, cars, trees, frog, game, lifeItem, pointItem, timerItem)
 
         text_info1 = info_font.render(('Level: {0}               Points: {1}'.format(game.level,game.points)),1,(255,255,255))
         text_info2 = info_font.render(('Time: {0}'.format(game.time)),1,(255,255,255))
@@ -457,8 +487,9 @@ while True:
         drawList(arrived_frog)
         drawList(cars)
         drawList(trees)
-        item.draw()
+        lifeItem.draw()
         pointItem.draw()
+        timerItem.draw()
         frog.animateFrog(key_pressed, key_up)
         frog.draw()
 
