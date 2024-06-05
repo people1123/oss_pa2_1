@@ -1,5 +1,7 @@
 import pygame
-
+import random as Random
+from pygame.locals import *
+from sys import exit
 pygame.init()
 pygame.font.init()
 
@@ -22,6 +24,7 @@ car3_filename = './images/car3.png'
 car4_filename = './images/car4.png'
 car5_filename = './images/car5.png'
 tree_filename = './images/tree.png'
+lifeitem_filename = './images/life.png'
 
 background = pygame.image.load(background_filename).convert()
 sprite_frog = pygame.image.load(frog_filename).convert_alpha()
@@ -32,6 +35,7 @@ sprite_car3 = pygame.image.load(car3_filename).convert_alpha()
 sprite_car4 = pygame.image.load(car4_filename).convert_alpha()
 sprite_car5 = pygame.image.load(car5_filename).convert_alpha()
 sprite_tree = pygame.image.load(tree_filename).convert_alpha()
+sprite_lifeitem = pygame.image.load(lifeitem_filename).convert_alpha()
 
 class Object():
     def __init__(self, position, sprite):
@@ -43,6 +47,11 @@ class Object():
 
     def rect(self):
         return pygame.Rect(self.position[0], self.position[1], self.sprite.get_width(), self.sprite.get_height())
+
+class Item(Object):
+    def __init__(self,position,sprite_enemy):
+        self.sprite = sprite_enemy
+        self.position = position
 
 class Frog(Object):
     def __init__(self, position, sprite_frog):
@@ -137,6 +146,9 @@ class Frog(Object):
 
     def decLife(self):
         self.life = self.life -1
+    
+    def incLife(self):
+        self.life = self.life +1
 
 def crashedFrog(frog, cars, game):
     for i in cars:
@@ -228,6 +240,45 @@ def drawList(list):
     for i in list:
         i.draw()
 
+def createItems(items):
+    random = Random.randint(-100, 448)
+    random2 = Random.randint(0,1000)
+    random2 = random2%9
+    position_col = 0
+    position_row = 0
+    position_row = random
+    if random2 == 0:
+        position_col = 280
+    elif random2 == 1:
+        position_col = 318
+    elif random2 == 2:
+        position_col = 357
+    elif random2 == 3:
+        position_col = 397
+    elif random2 == 4:
+        position_col = 436
+    elif random2 == 5:
+        position_col = 200
+    elif random2 == 6:
+        position_col = 161
+    elif random2 == 7:
+        position_col = 122
+    elif random2 == 8:
+        position_col = 83
+    else:
+        position_col = 44
+    position_init = [position_row, position_col]
+    print(position_init)
+    items.position = position_init
+
+def eatLife(frog, item):
+    itemRec = item.rect()
+    frogRec = frog.rect()
+    if frogRec.colliderect(itemRec):
+            frog.incLife()
+            item.position=[-100,100]
+        
+
 def createCars(list,cars, speed):
     for i, tick in enumerate(list):
         list[i] = list[i] - 1
@@ -314,7 +365,8 @@ class Game():
         self.time = 30
 
 def levelUp(arrived_frog, cars, trees, frog, game):
-    if len(arrived_frog) == 1:
+    if len(arrived_frog) == 3:
+        createItems(item)
         arrived_frog[:] = []
         frog.position=[207,475]
         game.incLevel()
@@ -342,7 +394,9 @@ while True:
     speed = 3
     game = Game(1, 3)
     time = 30
-
+    item= Item([0,0], sprite_lifeitem)
+    createItems(item)
+    
     while frog.life > 0:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -368,6 +422,7 @@ while True:
 
         createCars(ticks_cars, cars, game.speed)
         createTrees(ticks_trees, trees, game.speed)
+       
         moveList(cars,game.speed)
         moveList(trees, game.speed)
 
@@ -375,7 +430,7 @@ while True:
             crashedFrog(frog, cars,game)
         elif frog.position[1] < 240 and frog.position[1] > 40:
             drownedFrog(frog, trees, game.speed, game)
-
+        eatLife(frog, item)
         levelUp(arrived_frog, cars, trees, frog, game)
 
         text_info1 = info_font.render(('Level: {0}               Points: {1}'.format(game.level,game.points)),1,(255,255,255))
@@ -385,9 +440,11 @@ while True:
         screen.blit(text_info1, (10, 520))
         screen.blit(text_info2, (250, 520))
         screen.blit(text_info3, (350, 520))
+
         drawList(arrived_frog)
         drawList(cars)
         drawList(trees)
+        item.draw()
         frog.animateFrog(key_pressed, key_up)
         frog.draw()
 
