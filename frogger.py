@@ -25,8 +25,9 @@ car4_filename = './images/car4.png'
 car5_filename = './images/car5.png'
 tree_filename = './images/tree.png'
 lifeitem_filename = './images/life.png'
-pointitem_filename = './images/point.png'
+pointitem_filename = './images/coin.png'
 timeritem_filename = './images/timer.png'
+dragon_filename = './images/dragon.png'
 
 background = pygame.image.load(background_filename).convert()
 sprite_frog = pygame.image.load(frog_filename).convert_alpha()
@@ -40,6 +41,7 @@ sprite_tree = pygame.image.load(tree_filename).convert_alpha()
 sprite_lifeitem = pygame.image.load(lifeitem_filename).convert_alpha()
 sprite_pointitem = pygame.image.load(pointitem_filename).convert_alpha()
 sprite_timeritem = pygame.image.load(timeritem_filename).convert_alpha()
+sprite_dragon = pygame.image.load(dragon_filename).convert_alpha()
 
 class Object():
     def __init__(self, position, sprite):
@@ -180,6 +182,13 @@ def drownedFrog(frog, trees, speed, game):
         elif wayTree == "left":
             frog.position[0] = frog.position[0] - speed
 
+def firedFrog(frog, dragon, game):
+    dragonRec = dragon.rect()
+    frogRec = frog.rect()
+    if frogRec.colliderect(dragonRec):
+        print("fired: ", dragonRec, frogRec)
+        frog.frogDead(game)
+
 def frogArrived(frog,arrived_frog, game):
     if frog.position[0] > 33 and frog.position[0] < 53:
         position_init = [43,7]
@@ -203,7 +212,35 @@ def frogArrived(frog,arrived_frog, game):
     
 
 
+class Dragon(Object):
+    def __init__(self,position,sprite_enemy,way,factor):
+        self.sprite = sprite_enemy
+        self.position = position
+        self.way = way
+        self.factor = factor
+        
 
+    def move(self,speed):
+        print(self.position)
+        self.position[1] = self.position[1] + speed * self.factor
+        
+    
+def createDragons(dragon):
+    position_col = -100
+    position_row = 0
+    position_init =[0,0]
+    random = Random.randint(0,3)
+    if random==0:
+        position_row = 72
+    elif random == 1:
+        position_row = 154
+    elif random == 2:
+        position_row = 236
+    elif random == 3:
+        position_row = 318
+    position_init=[position_row, position_col]
+    dragon.position = position_init
+    
 class Car(Object):
     def __init__(self,position,sprite_enemy,way,factor):
         self.sprite = sprite_enemy
@@ -221,6 +258,7 @@ class Car(Object):
             self.position[0] = self.position[0] + speed * self.factor
         elif self.way == "left":
             self.position[0] = self.position[0] - speed * self.factor
+
 
 
 class Tree(Object):
@@ -306,6 +344,11 @@ def eatTimer(frog, timer, cars, game):
             for car in cars:
                 car.stoptime = 30
                 timer.position=[-100,100]
+
+
+
+
+    
 
 def createCars(list,cars, game):
     if game.stop_time >0:
@@ -414,7 +457,8 @@ def moveList(list,speed):
 
 
 gameInit = 0
-
+timerItem = Item([0,0], sprite_timeritem)
+createItems(timerItem, 1)
 while True:
     screen.blit(background, (0,0))
     frog = Frog([207,475], sprite_frog)
@@ -436,8 +480,9 @@ while True:
 
     timerItem = Item([0,0], sprite_timeritem)
     createItems(timerItem, 1)
-
-    
+    dragonstart = [72, 154, 236, 318]
+    randomdragon = Random.choice(dragonstart)
+    dragon = Dragon([randomdragon,-100], sprite_dragon,"down", 1)
     while frog.life > 0:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -466,11 +511,18 @@ while True:
        
         moveList(cars,game.speed)
         moveList(trees, game.speed)
+        
+        dragon.move(game.speed)
+        if dragon.position[1]>400:
+            createDragons(dragon)
+
 
         if frog.position[1] > 240 :
             crashedFrog(frog, cars,game)
         elif frog.position[1] < 240 and frog.position[1] > 40:
             drownedFrog(frog, trees, game.speed, game)
+        if frog.position[1] < 480 and frog.position[1] > 40:
+            firedFrog(frog, dragon, game)
         eatLife(frog, lifeItem)
         eatTimer(frog, timerItem, cars, game)
         eatPoint(frog, pointItem, game)
@@ -490,6 +542,7 @@ while True:
         lifeItem.draw()
         pointItem.draw()
         timerItem.draw()
+        dragon.draw()
         frog.animateFrog(key_pressed, key_up)
         frog.draw()
 
