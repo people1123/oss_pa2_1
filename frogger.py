@@ -8,9 +8,12 @@ pygame.display.set_caption('Frogger')
 clock = pygame.time.Clock()
 background_filename = './images/background.png'
 frog_filename = './images/sprite_sheets_up.png'
+arrived_filename = './images/frog_arrived.png'
 
 background = pygame.image.load(background_filename).convert()
 sprite_frog = pygame.image.load(frog_filename).convert_alpha()
+sprite_arrived = pygame.image.load(arrived_filename).convert_alpha()
+
 class Object():
     def __init__(self, position, sprite):
         self.sprite = sprite
@@ -97,11 +100,45 @@ class Frog(Object):
             self.animation_counter = 0
             self.can_move = 1
 
+def frogArrived(frog,arrived_frog):
+    if frog.position[0] > 33 and frog.position[0] < 53:
+        position_init = [43,7]
+        createArrived(frog,arrived_frog,position_init)
+
+    elif frog.position[0] > 115 and frog.position[0] < 135:
+        position_init = [125,7]
+        createArrived(frog,arrived_frog,position_init)
+
+    elif frog.position[0] > 197 and frog.position[0] < 217:
+        position_init = [207,7]
+        createArrived(frog,arrived_frog,position_init)
+
+    elif frog.position[0] > 279 and frog.position[0] < 299:
+        position_init = [289,7]
+        createArrived(frog,arrived_frog,position_init)
+
+    elif frog.position[0] > 361 and frog.position[0] < 381:
+        position_init = [371,7]
+        createArrived(frog,arrived_frog,position_init)
+
+def createArrived(frog,arrived_frog,position_init):
+    frog_arrived = Object(position_init,sprite_arrived)
+    arrived_frog.append(frog_arrived)
+    frog.position = [207, 475]
+    frog.animation_counter = 0
+    frog.animation_tick = 1
+    frog.can_move = 1
+
+def drawList(list):
+    for i in list:
+        i.draw()
 
 screen.blit(background, (0,0))
 frog = Frog([207,475], sprite_frog)
 key_up = 1
 key_pressed=0
+arrived_frog = []
+
 while True:
     
     
@@ -115,8 +152,11 @@ while True:
                 key_pressed = pygame.key.name(event.key)
                 frog.moveFrog(key_pressed, key_up)
                 frog.cannotMove()
-        
+    if frog.position[1] <40 :
+        frogArrived(frog,arrived_frog)
+
     screen.blit(background, (0,0))
+    drawList(arrived_frog)
     frog.animateFrog(key_pressed, key_up)
     frog.draw()
 
