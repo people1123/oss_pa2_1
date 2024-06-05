@@ -87,13 +87,13 @@ class Frog(Object):
 
 
     def moveFrog(self,key_pressed, key_up):
-        print(self.animation_counter)
+        
         if self.animation_counter == 0 :
             self.updateSprite(key_pressed)
         self.incAnimationCounter()
-        print("key up", key_up)
+        
         if key_up == 1:
-            print(self.position[0], self.position[1])
+            
             if key_pressed == "up":
                 if self.position[1] > 39:
                     self.position[1] = self.position[1]-13
@@ -120,7 +120,7 @@ class Frog(Object):
         if self.animation_counter != 0:
             if self.animation_tick <= 0:
                 self.moveFrog(key_pressed, key_up)
-                print("key: ",key_pressed)
+                
                 self.animaiton_tick = 1
             else:
                 self.animation_tick = self.animation_tick -1
@@ -161,7 +161,7 @@ def crashedFrog(frog, cars, game):
         carRec = i.rect()
         frogRec = frog.rect()
         if frogRec.colliderect(carRec):
-            print(carRec, frogRec)
+            
             frog.frogDead(game)
 
 def drownedFrog(frog, trees, speed, game):
@@ -186,7 +186,7 @@ def firedFrog(frog, dragon, game):
     dragonRec = dragon.rect()
     frogRec = frog.rect()
     if frogRec.colliderect(dragonRec):
-        print("fired: ", dragonRec, frogRec)
+        
         frog.frogDead(game)
 
 def frogArrived(frog,arrived_frog, game):
@@ -221,7 +221,7 @@ class Dragon(Object):
         
 
     def move(self,speed):
-        print(self.position)
+        
         self.position[1] = self.position[1] + speed * self.factor
         
     
@@ -318,7 +318,7 @@ def createItems(items, type):
     else:
         position_col = 44
     position_init = [position_row, position_col]
-    print(position_init)
+    
     items.position = position_init
 
 def eatLife(frog, item):
