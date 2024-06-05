@@ -6,13 +6,24 @@ screen = pygame.display.set_mode((448,546),0,32)
 
 pygame.display.set_caption('Frogger')
 clock = pygame.time.Clock()
+
 background_filename = './images/background.png'
 frog_filename = './images/sprite_sheets_up.png'
 arrived_filename = './images/frog_arrived.png'
+car1_filename = './images/car1.png'
+car2_filename = './images/car2.png'
+car3_filename = './images/car3.png'
+car4_filename = './images/car4.png'
+car5_filename = './images/car5.png'
 
 background = pygame.image.load(background_filename).convert()
 sprite_frog = pygame.image.load(frog_filename).convert_alpha()
 sprite_arrived = pygame.image.load(arrived_filename).convert_alpha()
+sprite_car1 = pygame.image.load(car1_filename).convert_alpha()
+sprite_car2 = pygame.image.load(car2_filename).convert_alpha()
+sprite_car3 = pygame.image.load(car3_filename).convert_alpha()
+sprite_car4 = pygame.image.load(car4_filename).convert_alpha()
+sprite_car5 = pygame.image.load(car5_filename).convert_alpha()
 
 class Object():
     def __init__(self, position, sprite):
@@ -121,6 +132,19 @@ def frogArrived(frog,arrived_frog):
         position_init = [371,7]
         createArrived(frog,arrived_frog,position_init)
 
+class Car(Object):
+    def __init__(self,position,sprite_enemy,way,factor):
+        self.sprite = sprite_enemy
+        self.position = position
+        self.way = way
+        self.factor = factor
+
+    def move(self,speed):
+        if self.way == "right":
+            self.position[0] = self.position[0] + speed * self.factor
+        elif self.way == "left":
+            self.position[0] = self.position[0] - speed * self.factor
+
 def createArrived(frog,arrived_frog,position_init):
     frog_arrived = Object(position_init,sprite_arrived)
     arrived_frog.append(frog_arrived)
@@ -133,12 +157,47 @@ def drawList(list):
     for i in list:
         i.draw()
 
+def createCars(list,cars, speed):
+    for i, tick in enumerate(list):
+        list[i] = list[i] - 1
+        if tick <= 0:
+            if i == 0:
+                list[0] = (40*speed)
+                position_init = [-55,436]
+                car = Car(position_init,sprite_car1,"right",1)
+                cars.append(car)
+            elif i == 1:
+                list[1] = (30*speed)
+                position_init = [506, 397]
+                car = Car(position_init,sprite_car2,"left",2)
+                cars.append(car)
+            elif i == 2:
+                list[2] = (40*speed)
+                position_init = [-80, 357]
+                car = Car(position_init,sprite_car3,"right",2)
+                cars.append(car)
+            elif i == 3:
+                list[3] = (30*speed)
+                position_init = [516, 318]
+                car = Car(position_init,sprite_car4,"left",1)
+                cars.append(car)
+            elif i == 4:
+                list[4] = (50*speed)
+                position_init = [-56, 280]
+                car = Car(position_init,sprite_car5,"right",1)
+                cars.append(car)
+
+def moveList(list,speed):
+    for i in list:
+        i.move(speed)
+        
 screen.blit(background, (0,0))
 frog = Frog([207,475], sprite_frog)
+cars =[]
 key_up = 1
 key_pressed=0
 arrived_frog = []
-
+ticks_cars = [30, 0, 30, 0, 60]
 while True:
     
     
@@ -155,8 +214,12 @@ while True:
     if frog.position[1] <40 :
         frogArrived(frog,arrived_frog)
 
+    createCars(ticks_cars, cars, 3)
+    moveList(cars,3)
+
     screen.blit(background, (0,0))
     drawList(arrived_frog)
+    drawList(cars)
     frog.animateFrog(key_pressed, key_up)
     frog.draw()
 
