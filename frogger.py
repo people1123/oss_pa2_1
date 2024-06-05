@@ -1,8 +1,14 @@
 import pygame
 
 pygame.init()
+pygame.font.init()
 
 screen = pygame.display.set_mode((448,546),0,32)
+
+font_name = pygame.font.get_default_font()
+game_font = pygame.font.SysFont(font_name, 72)
+info_font = pygame.font.SysFont(font_name, 24)
+menu_font = pygame.font.SysFont(font_name, 36)
 
 pygame.display.set_caption('Frogger')
 clock = pygame.time.Clock()
@@ -172,6 +178,7 @@ def frogArrived(frog,arrived_frog):
     elif frog.position[0] > 361 and frog.position[0] < 381:
         position_init = [371,7]
         createArrived(frog,arrived_frog,position_init)
+    
 
 
 
@@ -274,11 +281,39 @@ def createTrees(list,trees,speed):
                 tree = Tree(position_init,sprite_tree,"right")
                 trees.append(tree)
 
+class Game():
+    def __init__(self,level, speed):
+        self.level = level
+        self.speed = speed
+        self.points = 0
+        
+        self.gameInit = 0
 
+    def incLevel(self):
+        self.level = self.level + 1
+
+    def incSpeed(self):
+        self.speed = self.speed + 1
+
+    def incPoints(self,points):
+        self.points = self.points + points
+
+def levelUp(arrived_frog, cars, trees, frog, game):
+    if len(arrived_frog) == 1:
+        arrived_frog[:] = []
+        frog.position=[207,475]
+        game.incLevel()
+        game.incSpeed()
+        game.incPoints(100)
 
 def moveList(list,speed):
     for i in list:
         i.move(speed)
+
+
+
+gameInit = 0
+
 
 screen.blit(background, (0,0))
 frog = Frog([207,475], sprite_frog)
@@ -290,9 +325,9 @@ arrived_frog = []
 ticks_cars = [30, 0, 30, 0, 60]
 ticks_trees = [0, 0, 30, 30, 30]
 speed = 3
+game = Game(1, 3)
+
 while True:
-    
-    
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
                 exit()
@@ -306,16 +341,22 @@ while True:
     if frog.position[1] <40 :
         frogArrived(frog,arrived_frog)
 
-    createCars(ticks_cars, cars, speed)
-    createTrees(ticks_trees, trees, speed)
-    moveList(cars,3)
-    moveList(trees, 3)
+    createCars(ticks_cars, cars, game.speed)
+    createTrees(ticks_trees, trees, game.speed)
+    moveList(cars,game.speed)
+    moveList(trees, game.speed)
 
     if frog.position[1] > 240 :
         crashedFrog(frog, cars)
     elif frog.position[1] < 240 and frog.position[1] > 40:
-        drownedFrog(frog, trees, speed)
+        drownedFrog(frog, trees, game.speed)
+
+    levelUp(arrived_frog, cars, trees, frog, game)
+
+    text_info1 = info_font.render(('Level: {0}               Points: {1}'.format(game.level,game.points)),1,(255,255,255))
+    
     screen.blit(background, (0,0))
+    screen.blit(text_info1, (10, 520))
     drawList(arrived_frog)
     drawList(cars)
     drawList(trees)
