@@ -15,6 +15,7 @@ car2_filename = './images/car2.png'
 car3_filename = './images/car3.png'
 car4_filename = './images/car4.png'
 car5_filename = './images/car5.png'
+tree_filename = './images/tree.png'
 
 background = pygame.image.load(background_filename).convert()
 sprite_frog = pygame.image.load(frog_filename).convert_alpha()
@@ -24,6 +25,7 @@ sprite_car2 = pygame.image.load(car2_filename).convert_alpha()
 sprite_car3 = pygame.image.load(car3_filename).convert_alpha()
 sprite_car4 = pygame.image.load(car4_filename).convert_alpha()
 sprite_car5 = pygame.image.load(car5_filename).convert_alpha()
+sprite_tree = pygame.image.load(tree_filename).convert_alpha()
 
 class Object():
     def __init__(self, position, sprite):
@@ -145,6 +147,19 @@ class Car(Object):
         elif self.way == "left":
             self.position[0] = self.position[0] - speed * self.factor
 
+
+class Tree(Object):
+    def __init__(self,position,sprite_tree,way):
+        self.sprite = sprite_tree
+        self.position = position
+        self.way = way
+
+    def move(self,speed):
+        if self.way == "right":
+            self.position[0] = self.position[0] + speed
+        elif self.way == "left":
+            self.position[0] = self.position[0] - speed
+
 def createArrived(frog,arrived_frog,position_init):
     frog_arrived = Object(position_init,sprite_arrived)
     arrived_frog.append(frog_arrived)
@@ -187,17 +202,52 @@ def createCars(list,cars, speed):
                 car = Car(position_init,sprite_car5,"right",1)
                 cars.append(car)
 
+
+def createTrees(list,trees,speed):
+    for i, tick in enumerate(list):
+        list[i] = list[i] - 1
+        if tick <= 0:
+            if i == 0:
+                list[0] = (30*speed)
+                position_init = [-100,200]
+                tree = Tree(position_init,sprite_tree,"right")
+                trees.append(tree)
+            elif i == 1:
+                list[1] = (30*speed)
+                position_init = [448, 161]
+                tree = Tree(position_init,sprite_tree,"left")
+                trees.append(tree)
+            elif i == 2:
+                list[2] = (30*speed)
+                position_init = [-100, 122]
+                tree = Tree(position_init,sprite_tree,"right")
+                trees.append(tree)
+            elif i == 3:
+                list[3] = (30*speed)
+                position_init = [448, 83]
+                tree = Tree(position_init,sprite_tree,"left")
+                trees.append(tree)
+            elif i == 4:
+                list[4] = (30*speed)
+                position_init = [-100, 44]
+                tree = Tree(position_init,sprite_tree,"right")
+                trees.append(tree)
+
+
+
 def moveList(list,speed):
     for i in list:
         i.move(speed)
-        
+
 screen.blit(background, (0,0))
 frog = Frog([207,475], sprite_frog)
 cars =[]
+trees =[]
 key_up = 1
 key_pressed=0
 arrived_frog = []
 ticks_cars = [30, 0, 30, 0, 60]
+ticks_trees = [0, 0, 30, 30, 30]
 while True:
     
     
@@ -215,11 +265,13 @@ while True:
         frogArrived(frog,arrived_frog)
 
     createCars(ticks_cars, cars, 3)
+    createTrees(ticks_trees, trees, 3)
     moveList(cars,3)
-
+    moveList(trees, 3)
     screen.blit(background, (0,0))
     drawList(arrived_frog)
     drawList(cars)
+    drawList(trees)
     frog.animateFrog(key_pressed, key_up)
     frog.draw()
 
