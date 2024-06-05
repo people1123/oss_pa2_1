@@ -134,6 +134,24 @@ def crashedFrog(frog, cars):
             print(carRec, frogRec)
             frog.frogDead()
 
+def drownedFrog(frog, trees, speed):
+    safe = 0
+    wayTree = ""
+    for i in trees:
+        treeRec = i.rect()
+        frogRec = frog.rect()
+        if frogRec.colliderect(treeRec):
+            safe = 1
+            wayTree = i.way
+    
+    if safe == 0:
+        frog.frogDead()
+    elif safe == 1:
+        if wayTree == "right":
+            frog.position[0] = frog.position[0] + speed
+        elif wayTree == "left":
+            frog.position[0] = frog.position[0] - speed
+
 def frogArrived(frog,arrived_frog):
     if frog.position[0] > 33 and frog.position[0] < 53:
         position_init = [43,7]
@@ -271,6 +289,7 @@ key_pressed=0
 arrived_frog = []
 ticks_cars = [30, 0, 30, 0, 60]
 ticks_trees = [0, 0, 30, 30, 30]
+speed = 3
 while True:
     
     
@@ -287,13 +306,15 @@ while True:
     if frog.position[1] <40 :
         frogArrived(frog,arrived_frog)
 
-    createCars(ticks_cars, cars, 3)
-    createTrees(ticks_trees, trees, 3)
+    createCars(ticks_cars, cars, speed)
+    createTrees(ticks_trees, trees, speed)
     moveList(cars,3)
     moveList(trees, 3)
 
     if frog.position[1] > 240 :
         crashedFrog(frog, cars)
+    elif frog.position[1] < 240 and frog.position[1] > 40:
+        drownedFrog(frog, trees, speed)
     screen.blit(background, (0,0))
     drawList(arrived_frog)
     drawList(cars)
