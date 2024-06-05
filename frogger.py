@@ -122,25 +122,26 @@ class Frog(Object):
     def setInitPosition(self):
         self.position = [207,475]
 
-    def frogDead(self):
+    def frogDead(self, game):
         self.setInitPosition()
         self.animation_counter = 0
         self.animation_tick = 1
         self.way = "UP"
         self.can_move = 1
+        game.resetTime()
     
     def rect(self):
         return pygame.Rect(self.position[0],self.position[1],30,30)
 
-def crashedFrog(frog, cars):
+def crashedFrog(frog, cars, game):
     for i in cars:
         carRec = i.rect()
         frogRec = frog.rect()
         if frogRec.colliderect(carRec):
             print(carRec, frogRec)
-            frog.frogDead()
+            frog.frogDead(game)
 
-def drownedFrog(frog, trees, speed):
+def drownedFrog(frog, trees, speed, game):
     safe = 0
     wayTree = ""
     for i in trees:
@@ -151,33 +152,33 @@ def drownedFrog(frog, trees, speed):
             wayTree = i.way
     
     if safe == 0:
-        frog.frogDead()
+        frog.frogDead(game)
     elif safe == 1:
         if wayTree == "right":
             frog.position[0] = frog.position[0] + speed
         elif wayTree == "left":
             frog.position[0] = frog.position[0] - speed
 
-def frogArrived(frog,arrived_frog):
+def frogArrived(frog,arrived_frog, game):
     if frog.position[0] > 33 and frog.position[0] < 53:
         position_init = [43,7]
-        createArrived(frog,arrived_frog,position_init)
+        createArrived(frog,arrived_frog,position_init,game)
 
     elif frog.position[0] > 115 and frog.position[0] < 135:
         position_init = [125,7]
-        createArrived(frog,arrived_frog,position_init)
+        createArrived(frog,arrived_frog,position_init,game)
 
     elif frog.position[0] > 197 and frog.position[0] < 217:
         position_init = [207,7]
-        createArrived(frog,arrived_frog,position_init)
+        createArrived(frog,arrived_frog,position_init,game)
 
     elif frog.position[0] > 279 and frog.position[0] < 299:
         position_init = [289,7]
-        createArrived(frog,arrived_frog,position_init)
+        createArrived(frog,arrived_frog,position_init,game)
 
     elif frog.position[0] > 361 and frog.position[0] < 381:
         position_init = [371,7]
-        createArrived(frog,arrived_frog,position_init)
+        createArrived(frog,arrived_frog,position_init,game)
     
 
 
@@ -208,9 +209,11 @@ class Tree(Object):
         elif self.way == "left":
             self.position[0] = self.position[0] - speed
 
-def createArrived(frog,arrived_frog,position_init):
+def createArrived(frog,arrived_frog,position_init, game):
     frog_arrived = Object(position_init,sprite_arrived)
     arrived_frog.append(frog_arrived)
+    game.incPoints(10 + game.time)
+    game.resetTime()
     frog.position = [207, 475]
     frog.animation_counter = 0
     frog.animation_tick = 1
@@ -286,6 +289,7 @@ class Game():
         self.level = level
         self.speed = speed
         self.points = 0
+        self.time = 30
         
         self.gameInit = 0
 
@@ -297,6 +301,12 @@ class Game():
 
     def incPoints(self,points):
         self.points = self.points + points
+
+    def decTime(self):
+        self.time = self.time -1
+    
+    def resetTime(self):
+        self.time = 30
 
 def levelUp(arrived_frog, cars, trees, frog, game):
     if len(arrived_frog) == 1:
@@ -326,6 +336,7 @@ ticks_cars = [30, 0, 30, 0, 60]
 ticks_trees = [0, 0, 30, 30, 30]
 speed = 3
 game = Game(1, 3)
+time = 30
 
 while True:
     for event in pygame.event.get():
@@ -338,8 +349,17 @@ while True:
                 key_pressed = pygame.key.name(event.key)
                 frog.moveFrog(key_pressed, key_up)
                 frog.cannotMove()
+    if not time:
+        time = 30
+        game.decTime()
+    else:
+        time -=1
+    
+    if game.time == 0:
+        frog.frogDead(game)
+
     if frog.position[1] <40 :
-        frogArrived(frog,arrived_frog)
+        frogArrived(frog,arrived_frog, game)
 
     createCars(ticks_cars, cars, game.speed)
     createTrees(ticks_trees, trees, game.speed)
@@ -347,16 +367,17 @@ while True:
     moveList(trees, game.speed)
 
     if frog.position[1] > 240 :
-        crashedFrog(frog, cars)
+        crashedFrog(frog, cars,game)
     elif frog.position[1] < 240 and frog.position[1] > 40:
-        drownedFrog(frog, trees, game.speed)
+        drownedFrog(frog, trees, game.speed, game)
 
     levelUp(arrived_frog, cars, trees, frog, game)
 
     text_info1 = info_font.render(('Level: {0}               Points: {1}'.format(game.level,game.points)),1,(255,255,255))
-    
+    text_info2 = info_font.render(('Time: {0}'.format(game.time)),1,(255,255,255))
     screen.blit(background, (0,0))
     screen.blit(text_info1, (10, 520))
+    screen.blit(text_info2, (250, 520))
     drawList(arrived_frog)
     drawList(cars)
     drawList(trees)
