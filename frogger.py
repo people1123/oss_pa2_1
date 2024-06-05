@@ -52,6 +52,7 @@ class Frog(Object):
         self.animation_tick = 1
         self.way = "UP"
         self.can_move = 1
+        self.life = 3
 
     def updateSprite(self, key_pressed):
         if self.way != key_pressed:
@@ -124,6 +125,7 @@ class Frog(Object):
 
     def frogDead(self, game):
         self.setInitPosition()
+        self.decLife()
         self.animation_counter = 0
         self.animation_tick = 1
         self.way = "UP"
@@ -132,6 +134,9 @@ class Frog(Object):
     
     def rect(self):
         return pygame.Rect(self.position[0],self.position[1],30,30)
+
+    def decLife(self):
+        self.life = self.life -1
 
 def crashedFrog(frog, cars, game):
     for i in cars:
@@ -324,65 +329,67 @@ def moveList(list,speed):
 
 gameInit = 0
 
-
-screen.blit(background, (0,0))
-frog = Frog([207,475], sprite_frog)
-cars =[]
-trees =[]
-key_up = 1
-key_pressed=0
-arrived_frog = []
-ticks_cars = [30, 0, 30, 0, 60]
-ticks_trees = [0, 0, 30, 30, 30]
-speed = 3
-game = Game(1, 3)
-time = 30
-
 while True:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-                exit()
-        if event.type == pygame.KEYUP:
-            key_up = 1
-        if event.type == pygame.KEYDOWN:
-            if key_up == 1 and frog.can_move == 1:
-                key_pressed = pygame.key.name(event.key)
-                frog.moveFrog(key_pressed, key_up)
-                frog.cannotMove()
-    if not time:
-        time = 30
-        game.decTime()
-    else:
-        time -=1
-    
-    if game.time == 0:
-        frog.frogDead(game)
-
-    if frog.position[1] <40 :
-        frogArrived(frog,arrived_frog, game)
-
-    createCars(ticks_cars, cars, game.speed)
-    createTrees(ticks_trees, trees, game.speed)
-    moveList(cars,game.speed)
-    moveList(trees, game.speed)
-
-    if frog.position[1] > 240 :
-        crashedFrog(frog, cars,game)
-    elif frog.position[1] < 240 and frog.position[1] > 40:
-        drownedFrog(frog, trees, game.speed, game)
-
-    levelUp(arrived_frog, cars, trees, frog, game)
-
-    text_info1 = info_font.render(('Level: {0}               Points: {1}'.format(game.level,game.points)),1,(255,255,255))
-    text_info2 = info_font.render(('Time: {0}'.format(game.time)),1,(255,255,255))
     screen.blit(background, (0,0))
-    screen.blit(text_info1, (10, 520))
-    screen.blit(text_info2, (250, 520))
-    drawList(arrived_frog)
-    drawList(cars)
-    drawList(trees)
-    frog.animateFrog(key_pressed, key_up)
-    frog.draw()
+    frog = Frog([207,475], sprite_frog)
+    cars =[]
+    trees =[]
+    key_up = 1
+    key_pressed=0
+    arrived_frog = []
+    ticks_cars = [30, 0, 30, 0, 60]
+    ticks_trees = [0, 0, 30, 30, 30]
+    speed = 3
+    game = Game(1, 3)
+    time = 30
 
-    pygame.display.update()
-    time_passed = clock.tick(30)
+    while frog.life > 0:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                    exit()
+            if event.type == pygame.KEYUP:
+                key_up = 1
+            if event.type == pygame.KEYDOWN:
+                if key_up == 1 and frog.can_move == 1:
+                    key_pressed = pygame.key.name(event.key)
+                    frog.moveFrog(key_pressed, key_up)
+                    frog.cannotMove()
+        if not time:
+            time = 30
+            game.decTime()
+        else:
+            time -=1
+        
+        if game.time == 0:
+            frog.frogDead(game)
+
+        if frog.position[1] <40 :
+            frogArrived(frog,arrived_frog, game)
+
+        createCars(ticks_cars, cars, game.speed)
+        createTrees(ticks_trees, trees, game.speed)
+        moveList(cars,game.speed)
+        moveList(trees, game.speed)
+
+        if frog.position[1] > 240 :
+            crashedFrog(frog, cars,game)
+        elif frog.position[1] < 240 and frog.position[1] > 40:
+            drownedFrog(frog, trees, game.speed, game)
+
+        levelUp(arrived_frog, cars, trees, frog, game)
+
+        text_info1 = info_font.render(('Level: {0}               Points: {1}'.format(game.level,game.points)),1,(255,255,255))
+        text_info2 = info_font.render(('Time: {0}'.format(game.time)),1,(255,255,255))
+        text_info3 = info_font.render(('Life: {0}'.format(frog.life)),1,(255,255,255))
+        screen.blit(background, (0,0))
+        screen.blit(text_info1, (10, 520))
+        screen.blit(text_info2, (250, 520))
+        screen.blit(text_info3, (350, 520))
+        drawList(arrived_frog)
+        drawList(cars)
+        drawList(trees)
+        frog.animateFrog(key_pressed, key_up)
+        frog.draw()
+
+        pygame.display.update()
+        time_passed = clock.tick(30)
