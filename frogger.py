@@ -440,7 +440,7 @@ class Game():
         self.time = 30
 
 def levelUp(arrived_frog, cars, trees, frog, game, life, point, timer):
-    if len(arrived_frog) == 3:
+    if len(arrived_frog) == 1:
         createItems(life,0)
         createItems(point,0)
         createItems(timer,1)
@@ -511,10 +511,10 @@ while True:
        
         moveList(cars,game.speed)
         moveList(trees, game.speed)
-        
-        dragon.move(game.speed)
-        if dragon.position[1]>400:
-            createDragons(dragon)
+        if game.level > 2:
+            dragon.move(game.speed)
+            if dragon.position[1]>400:
+                createDragons(dragon)
 
 
         if frog.position[1] > 240 :
