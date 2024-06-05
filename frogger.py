@@ -36,7 +36,7 @@ class Object():
         screen.blit(self.sprite, (self.position))
 
     def rect(self):
-        return Rect(self.postion[0], self.position[1], self.sprite.get_width(), self.sprite.get_height())
+        return pygame.Rect(self.position[0], self.position[1], self.sprite.get_width(), self.sprite.get_height())
 
 class Frog(Object):
     def __init__(self, position, sprite_frog):
@@ -113,6 +113,27 @@ class Frog(Object):
             self.animation_counter = 0
             self.can_move = 1
 
+    def setInitPosition(self):
+        self.position = [207,475]
+
+    def frogDead(self):
+        self.setInitPosition()
+        self.animation_counter = 0
+        self.animation_tick = 1
+        self.way = "UP"
+        self.can_move = 1
+    
+    def rect(self):
+        return pygame.Rect(self.position[0],self.position[1],30,30)
+
+def crashedFrog(frog, cars):
+    for i in cars:
+        carRec = i.rect()
+        frogRec = frog.rect()
+        if frogRec.colliderect(carRec):
+            print(carRec, frogRec)
+            frog.frogDead()
+
 def frogArrived(frog,arrived_frog):
     if frog.position[0] > 33 and frog.position[0] < 53:
         position_init = [43,7]
@@ -133,6 +154,8 @@ def frogArrived(frog,arrived_frog):
     elif frog.position[0] > 361 and frog.position[0] < 381:
         position_init = [371,7]
         createArrived(frog,arrived_frog,position_init)
+
+
 
 class Car(Object):
     def __init__(self,position,sprite_enemy,way,factor):
@@ -268,6 +291,9 @@ while True:
     createTrees(ticks_trees, trees, 3)
     moveList(cars,3)
     moveList(trees, 3)
+
+    if frog.position[1] > 240 :
+        crashedFrog(frog, cars)
     screen.blit(background, (0,0))
     drawList(arrived_frog)
     drawList(cars)
